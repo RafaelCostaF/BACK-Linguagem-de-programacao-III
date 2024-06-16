@@ -5,7 +5,6 @@ import com.example.socialmedia.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.Table;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -31,10 +30,10 @@ public class UserController {
         return userService.findAll();
     }
 
-    @GetMapping("/{username}")
-    @Operation(summary = "Get a user by username")
-    public Optional<User> getUserByUsername(@PathVariable String username) {
-        return userService.findByUsername(username);
+    @GetMapping("/{id}")
+    @Operation(summary = "Get a user by id")
+    public Optional<User> getUserById(@PathVariable Long id) {
+        return userService.findById(id);
     }
 
     @PostMapping
