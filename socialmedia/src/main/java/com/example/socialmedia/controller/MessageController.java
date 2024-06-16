@@ -4,6 +4,7 @@ import com.example.socialmedia.model.Message;
 import com.example.socialmedia.service.MessageService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/messages")
+@Tag(name = "Message Management", description = "Operations pertaining to message management")
 public class MessageController {
 
     private final MessageService messageService;
