@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RestController
 @Tag(name = "Post Management", description = "Operations pertaining to post management")
-@RequestMapping("/api/posts")
+@RequestMapping("/posts")
 public class PostController {
 
     private final PostService postService;

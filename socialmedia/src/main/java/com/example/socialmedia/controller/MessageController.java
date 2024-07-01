@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/messages")
+@RequestMapping("/messages")
 @Tag(name = "Message Management", description = "Operations pertaining to message management")
 public class MessageController {
 
