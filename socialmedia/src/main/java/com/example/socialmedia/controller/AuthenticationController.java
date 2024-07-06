@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.socialmedia.dtos.LoginUserDto;
 import com.example.socialmedia.dtos.RegisterUserDto;
+import com.example.socialmedia.dtos.UserDto;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.responses.LoginResponse;
 import com.example.socialmedia.service.AuthenticationService;
@@ -26,10 +27,15 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<User> register(@RequestBody RegisterUserDto registerUserDto) {
+    public ResponseEntity<UserDto> register(@RequestBody RegisterUserDto registerUserDto) {
         User registeredUser = authenticationService.signup(registerUserDto);
+        UserDto registeredUserDto = new UserDto(
+            registeredUser.getId(),
+            registeredUser.getUsername(),
+            registeredUser.getFullName()
+        );
 
-        return ResponseEntity.ok(registeredUser);
+        return ResponseEntity.ok(registeredUserDto);
     }
 
     @PostMapping("/login")
