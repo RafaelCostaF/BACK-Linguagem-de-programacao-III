@@ -1,6 +1,7 @@
 package com.example.socialmedia.controller;
 
 import com.example.socialmedia.dtos.PostDto;
+import com.example.socialmedia.dtos.PostDtoCreation;
 import com.example.socialmedia.model.Posts;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.service.PostService;
@@ -64,11 +65,11 @@ public class PostController {
     
     @PostMapping
     @Operation(summary = "Create a new post")
-    public ResponseEntity<PostDto> createPost(@RequestBody Map<String, String> postRequest) {
+    public ResponseEntity<PostDto> createPost(@RequestBody PostDtoCreation postRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         
-        String content = postRequest.get("content");
+        String content = postRequest.getContent();
         
         Posts post = new Posts();
         post.setContent(content);
