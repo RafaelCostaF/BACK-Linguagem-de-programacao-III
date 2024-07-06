@@ -6,6 +6,7 @@ import com.example.socialmedia.model.Posts;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.service.PostService;
 
+import io.jsonwebtoken.io.IOException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -15,10 +16,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.awt.image.BufferedImage;
+
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
 
 @RestController
 @Tag(name = "Post Management", description = "Operations pertaining to post management")
@@ -35,13 +42,18 @@ public class PostController {
     @GetMapping
     @Operation(summary = "Get all posts")
     public ResponseEntity<List<PostDto>> getAllPosts() {
-        List<Posts> posts =  postService.findAll();
-        List<PostDto> postDtos = posts.stream().map(post -> new PostDto(
-            post.getId(),
-            post.getUser().getId(),
-            post.getContent(),
-            post.getCreatedAt()
-        )).collect(Collectors.toList());
+        List<Posts> posts = postService.findAll();
+        List<PostDto> postDtos = posts.stream().map(post -> {
+            String encodedImage = post.getImage() != null ? Base64.getEncoder().encodeToString(post.getImage()) : null;
+            return new PostDto(
+                    post.getId(),
+                    post.getUser().getId(),
+                    post.getContent(),
+                    encodedImage,
+                    post.getCreatedAt()
+            );
+        }).collect(Collectors.toList());
+
 
         return ResponseEntity.ok(postDtos);
     }
@@ -53,37 +65,61 @@ public class PostController {
         User currentUser = (User) authentication.getPrincipal();
 
         List<Posts> posts = postService.findByUser(currentUser);
-        List<PostDto> postDtos = posts.stream().map(post -> new PostDto(
-            post.getId(),
-            post.getUser().getId(),
-            post.getContent(),
-            post.getCreatedAt()
-        )).collect(Collectors.toList());
+        List<PostDto> postDtos = posts.stream().map(post -> {
+            String encodedImage = post.getImage() != null ? Base64.getEncoder().encodeToString(post.getImage()) : null;
+            return new PostDto(
+                    post.getId(),
+                    post.getUser().getId(),
+                    post.getContent(),
+                    encodedImage,
+                    post.getCreatedAt()
+            );
+        }).collect(Collectors.toList());
+
 
         return ResponseEntity.ok(postDtos);
     }
     
     @PostMapping
-    @Operation(summary = "Create a new post")
-    public ResponseEntity<PostDto> createPost(@RequestBody PostDtoCreation postRequest) {
+    @Operation(summary = "Create a new post.", description = "Send image as base64.")
+    public ResponseEntity<PostDto> createPost(PostDtoCreation postDtoCreation) throws java.io.IOException{
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
-        
-        String content = postRequest.getContent();
+
+        byte[] image = Base64.getDecoder().decode(postDtoCreation.getImage());
+
+        // Check if the uploaded file is a valid image
+        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(image));
+        if (bufferedImage == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null); // Returning ResponseEntity<String> for error case
+        }
         
         Posts post = new Posts();
-        post.setContent(content);
+        post.setContent(postDtoCreation.getContent());
         post.setUser(currentUser);
+        post.setImage(image);
         // createdAt will be set automatically by the @PrePersist method
         
         Posts savedPost = postService.save(post);
         
-        PostDto postDto = new PostDto(
-            savedPost.getId(),
-            savedPost.getUser().getId(),
-            savedPost.getContent(),
-            savedPost.getCreatedAt()
+        PostDto postDto;
+        if (savedPost.getImage() != null) {
+            postDto = new PostDto(
+                savedPost.getId(),
+                savedPost.getUser().getId(),
+                savedPost.getContent(),
+                Base64.getEncoder().encodeToString(savedPost.getImage()),
+                savedPost.getCreatedAt()
             );
+        } else {
+            postDto = new PostDto(
+                savedPost.getId(),
+                savedPost.getUser().getId(),
+                savedPost.getContent(),
+                null,  // or any default value you prefer for image when it's null
+                savedPost.getCreatedAt()
+            );
+        }
             
             return ResponseEntity.ok(postDto);
         }
@@ -95,11 +131,13 @@ public class PostController {
         Optional<Posts> postOptional = postService.findById(id);
         if (postOptional.isPresent()) {
             Posts post = postOptional.get();
+            String encodedImage = post.getImage() != null ? Base64.getEncoder().encodeToString(post.getImage()) : null;
             PostDto postDto = new PostDto(
-                post.getId(),
-                post.getUser().getId(),
-                post.getContent(),
-                post.getCreatedAt()
+                    post.getId(),
+                    post.getUser().getId(),
+                    post.getContent(),
+                    encodedImage,
+                    post.getCreatedAt()
             );
             return ResponseEntity.ok(postDto);
         } else {
@@ -110,7 +148,7 @@ public class PostController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing post")
-    public ResponseEntity<PostDto> updatePost(@PathVariable Long id, @RequestBody Map<String, String> postRequest) {
+    public ResponseEntity<PostDto> updatePost(@PathVariable Long id, @RequestBody Map<String, Object> postRequest) throws java.io.IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
 
@@ -120,16 +158,59 @@ public class PostController {
             if (!post.getUser().getId().equals(currentUser.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            post.setContent(postRequest.get("content"));
 
+            // Update content if present in request
+            if (postRequest.containsKey("content")) {
+                post.setContent((String) postRequest.get("content"));
+            }
+
+            // Update image if present in request
+            if (postRequest.containsKey("image")) {
+                Object imageObj = postRequest.get("image");
+                byte[] image = null;
+
+                if (imageObj != null) {
+                    if (imageObj instanceof String) {
+                        String imageBase64 = (String) imageObj;
+                        try {
+                            image = Base64.getDecoder().decode(imageBase64);
+                        } catch (IllegalArgumentException e) {
+                            return ResponseEntity.badRequest().body(null); // Invalid Base64 string
+                        }
+
+                        // Check if the uploaded file is a valid image
+                        BufferedImage bufferedImage;
+                        try {
+                            bufferedImage = ImageIO.read(new ByteArrayInputStream(image));
+                            if (bufferedImage == null) {
+                                return ResponseEntity.badRequest().body(null); // Not a valid image
+                            }
+                        } catch (IOException e) {
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Error reading image
+                        }
+                    } else {
+                        return ResponseEntity.badRequest().body(null); // Invalid image format
+                    }
+                }
+
+                // Update the image in the post entity
+                post.setImage(image);
+            }
+
+
+            // Save the updated post
             Posts updatedPost = postService.save(post);
 
+            // Prepare PostDto response
+            String encodedImage = updatedPost.getImage() != null ? Base64.getEncoder().encodeToString(updatedPost.getImage()) : null;
             PostDto postDto = new PostDto(
-                updatedPost.getId(),
-                updatedPost.getUser().getId(),
-                updatedPost.getContent(),
-                updatedPost.getCreatedAt()
+                    updatedPost.getId(),
+                    updatedPost.getUser().getId(),
+                    updatedPost.getContent(),
+                    encodedImage,
+                    updatedPost.getCreatedAt()
             );
+
             return ResponseEntity.ok(postDto);
         } else {
             return ResponseEntity.notFound().build();

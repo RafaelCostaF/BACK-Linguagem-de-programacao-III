@@ -8,12 +8,14 @@ public class PostDto {
     private Long id;
     private Long userId;
     private String content;
+    private String image;
     private LocalDateTime createdAt;
 
-    public PostDto(Long id, Long userId, String content, LocalDateTime createdAt) {
+    public PostDto(Long id, Long userId, String content,String image, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.content = content;
+        this.image = image;
         this.createdAt = createdAt;
     }
 
@@ -41,6 +43,15 @@ public class PostDto {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+
+    public String getImage() {
+        return this.image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public LocalDateTime getCreatedAt() {

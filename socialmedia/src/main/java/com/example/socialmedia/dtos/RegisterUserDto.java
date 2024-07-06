@@ -7,6 +7,7 @@ public class RegisterUserDto {
     private String email;
     private String password;
     private String fullName;
+    private byte[] profileImage;
 
     public String getEmail() {
         return this.email;
@@ -32,4 +33,11 @@ public class RegisterUserDto {
         this.fullName = fullName;
     }
 
+    public byte[] getProfileImage() {
+        return this.profileImage;
+    }
+
+    public void setProfileImage(byte[] profileImage) {
+        this.profileImage = profileImage;
+    }
 }
