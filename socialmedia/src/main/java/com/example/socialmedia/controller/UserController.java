@@ -1,5 +1,7 @@
 package com.example.socialmedia.controller;
 
+import com.example.socialmedia.dtos.PostDto;
+import com.example.socialmedia.dtos.UserDto;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.service.UserService;
 
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -35,10 +38,16 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<User>> allUsers() {
+    public ResponseEntity<List<UserDto>> allUsers() {
         List <User> users = userService.allUsers();
+        
+        List<UserDto> usersDto = users.stream().map(user -> new UserDto(
+            user.getId(),
+            user.getUsername(),
+            user.getFullName()
+        )).collect(Collectors.toList());
 
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(usersDto);
     }
 
     // @GetMapping
