@@ -42,8 +42,6 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-
-
     // @GetMapping
     // @Operation(summary = "Get all users")
     // public List<User> getAllUsers() {

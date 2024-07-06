@@ -1,6 +1,7 @@
 package com.example.socialmedia.service;
 
-import com.example.socialmedia.model.Post;
+import com.example.socialmedia.model.Posts;
+import com.example.socialmedia.model.User;
 import com.example.socialmedia.repository.PostRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +17,23 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-    public List<Post> findAll() {
+    public List<Posts> findByUser(User user) {
+        return postRepository.findByUser(user);
+    }
+
+    public List<Posts> findAll() {
         return postRepository.findAll();
     }
 
-    public Optional<Post> findById(Long id) {
+    public Optional<Posts> findById(Long id) {
         return postRepository.findById(id);
     }
 
-    public Post save(Post post) {
+    public boolean existsById(Long id) {
+        return postRepository.existsById(id);
+    }
+
+    public Posts save(Posts post) {
         return postRepository.save(post);
     }
 
