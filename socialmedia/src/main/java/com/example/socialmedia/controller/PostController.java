@@ -46,7 +46,7 @@ public class PostController {
         return ResponseEntity.ok(postDtos);
     }
 
-    @GetMapping("/my-posts")
+    @GetMapping("/me")
     @Operation(summary = "Get all posts for the authenticated user")
     public ResponseEntity<List<PostDto>> getMyPosts() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
