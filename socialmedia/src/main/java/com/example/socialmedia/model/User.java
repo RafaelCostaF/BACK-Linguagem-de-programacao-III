@@ -30,11 +30,43 @@ public class User implements UserDetails{
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = true)
+    private byte[] image;
+
+    public User() {
+    }
+
+    public User(String fullName, String password, String email, byte[] image) {
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.image = image;
+    }
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
     
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public byte[] getImage() {
+        return this.image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
+
+
     @Override
     public String getUsername() {
         return email;

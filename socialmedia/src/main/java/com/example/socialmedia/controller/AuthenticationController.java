@@ -1,5 +1,8 @@
 package com.example.socialmedia.controller;
 
+import java.io.IOException;
+import java.util.Base64;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,12 +30,15 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDto> register(@RequestBody RegisterUserDto registerUserDto) {
+    public ResponseEntity<UserDto> register(@RequestBody RegisterUserDto registerUserDto) throws IOException {
         User registeredUser = authenticationService.signup(registerUserDto);
+
+        String encodedImage = registeredUser.getImage() != null ? Base64.getEncoder().encodeToString(registeredUser.getImage()) : null;
         UserDto registeredUserDto = new UserDto(
             registeredUser.getId(),
             registeredUser.getUsername(),
-            registeredUser.getFullName()
+            registeredUser.getFullName(),
+            encodedImage
         );
 
         return ResponseEntity.ok(registeredUserDto);

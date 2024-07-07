@@ -1,6 +1,7 @@
 package com.example.socialmedia.service;
 
-import com.example.socialmedia.model.Message;
+import com.example.socialmedia.model.Messages;
+import com.example.socialmedia.model.User;
 import com.example.socialmedia.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,19 +17,31 @@ public class MessageService {
         this.messageRepository = messageRepository;
     }
 
-    public List<Message> findAll() {
+    public List<Messages> getChatMessages(Long userId, Long otherUserId) {
+        return messageRepository.findChatMessages(userId, otherUserId);
+    }
+    
+    public List<User> getChatUsers(Long userId) {
+        return messageRepository.findDistinctChatUsers(userId);
+    }
+
+    public List<Messages> findAll() {
         return messageRepository.findAll();
     }
 
-    public Optional<Message> findById(Long id) {
+    public Optional<Messages> findById(Long id) {
         return messageRepository.findById(id);
     }
 
-    public Message save(Message message) {
+    public Messages save(Messages message) {
         return messageRepository.save(message);
     }
 
     public void deleteById(Long id) {
         messageRepository.deleteById(id);
+    }
+
+    public List<User> getUsersWhoMessagedMe(Long receiverId) {
+        return messageRepository.findDistinctSendersByReceiverId(receiverId);
     }
 }
