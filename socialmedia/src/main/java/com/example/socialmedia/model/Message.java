@@ -1,13 +1,6 @@
 package com.example.socialmedia.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,10 +21,24 @@ public class Message {
     @Column(nullable = false)
     private String content;
 
+    @Column(nullable = true)
+    private byte[] image;
+
     @Column(nullable = false)
     private LocalDateTime sentAt = LocalDateTime.now();
 
+    public Message() {
+    }
+
+    public Message(User sender, User receiver, String content, byte[] image) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.content = content;
+        this.image = image;
+    }
+
     // Getters and Setters
+
     public Long getId() {
         return id;
     }
@@ -62,6 +69,14 @@ public class Message {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 
     public LocalDateTime getSentAt() {
