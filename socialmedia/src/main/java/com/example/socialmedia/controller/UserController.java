@@ -1,8 +1,6 @@
 package com.example.socialmedia.controller;
 
-import com.example.socialmedia.dtos.PostDto;
 import com.example.socialmedia.dtos.UserDto;
-import com.example.socialmedia.model.Posts;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.service.UserService;
 
