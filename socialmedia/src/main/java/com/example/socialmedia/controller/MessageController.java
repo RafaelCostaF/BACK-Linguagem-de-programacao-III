@@ -2,17 +2,15 @@ package com.example.socialmedia.controller;
 
 import com.example.socialmedia.dtos.MessageDto;
 import com.example.socialmedia.dtos.MessageRequestDto;
-import com.example.socialmedia.dtos.PostDto;
-import com.example.socialmedia.model.Message;
+import com.example.socialmedia.dtos.UserDto;
+import com.example.socialmedia.model.Messages;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.repository.UserRepository;
 import com.example.socialmedia.service.MessageService;
-import com.example.socialmedia.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +22,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -41,6 +40,7 @@ public class MessageController {
         this.userRepository = userRepository;
     }
 
+    @SuppressWarnings("unchecked")
     @PostMapping("/to/{receiverId}")
     @Operation(summary = "Send a message to another user")
     public ResponseEntity<MessageDto> sendMessage(@PathVariable Long receiverId, @RequestBody MessageRequestDto messageRequest) throws IOException {
@@ -67,7 +67,7 @@ public class MessageController {
             image = null;
         }
 
-        Message message = new Message(currentUser, receiver, messageRequest.getContent(), image);
+        Messages message = new Messages(currentUser, receiver, messageRequest.getContent(), image);
 
         message = messageService.save(message);
 
@@ -95,7 +95,70 @@ public class MessageController {
 
         return ResponseEntity.ok(messageDto);
     }
+
+
+    @GetMapping("/chats")
+    @Operation(summary = "Get users who have chatted with the authenticated user")
+    public ResponseEntity<List<UserDto>> getChatUsers() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+
+        List<User> users = messageService.getChatUsers(currentUser.getId());
+
+        List<UserDto> userDtos = users.stream()
+            .map(user -> new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName(),
+                user.getImage() != null ? Base64.getEncoder().encodeToString(user.getImage()) : null
+            ))
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(userDtos);
+    }
+
+    @GetMapping("/chats/{userId}")
+    @Operation(summary = "Get chat messages with a specific user")
+    public ResponseEntity<List<MessageDto>> getChatWithUser(@PathVariable Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+
+        List<Messages> messages = messageService.getChatMessages(currentUser.getId(), userId);
+
+        List<MessageDto> messageDtos = messages.stream()
+            .map(message -> new MessageDto(
+                message.getId(),
+                message.getSender().getId(),
+                message.getReceiver().getId(),
+                message.getContent(),
+                message.getImage() != null ? Base64.getEncoder().encodeToString(message.getImage()) : null,
+                message.getSentAt()
+            ))
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(messageDtos);
+    }
     
+    
+        // @GetMapping("/users_messaged_me")
+        // @Operation(summary = "Get users who sent messages to the authenticated user")
+        // public ResponseEntity<List<UserDto>> getUsersWhoMessagedMe() {
+        //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        //     User currentUser = (User) authentication.getPrincipal();
+    
+        //     List<User> users = messageService.getUsersWhoMessagedMe(currentUser.getId());
+    
+        //     List<UserDto> userDtos = users.stream()
+        //         .map(user -> new UserDto(
+        //             user.getId(),
+        //             user.getUsername(),
+        //             user.getFullName(),
+        //             user.getImage() != null ? Base64.getEncoder().encodeToString(user.getImage()) : null
+        //         ))
+        //         .collect(Collectors.toList());
+    
+        //     return ResponseEntity.ok(userDtos);
+        // }
     
     // @GetMapping
     // @Operation(summary = "Get all messages")

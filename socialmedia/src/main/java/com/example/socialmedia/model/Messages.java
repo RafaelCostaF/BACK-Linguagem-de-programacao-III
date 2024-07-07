@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-public class Message {
+public class Messages {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +27,10 @@ public class Message {
     @Column(nullable = false)
     private LocalDateTime sentAt = LocalDateTime.now();
 
-    public Message() {
+    public Messages() {
     }
 
-    public Message(User sender, User receiver, String content, byte[] image) {
+    public Messages(User sender, User receiver, String content, byte[] image) {
         this.sender = sender;
         this.receiver = receiver;
         this.content = content;
